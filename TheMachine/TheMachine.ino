@@ -3,12 +3,11 @@
 #include <string.h>
 #include <SPI.h>
 
+#include "uprot.h"
 //Enrf24 radio(9, 10, 8);
 Enrf24 radio(47, 46, 45);
-const uint8_t rxaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x02 };
-
-const char *str_on = "ON";
-const char *str_off = "OFF";
+const uint8_t rxaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x01 };
+const uint8_t txaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x03 };
 
 void dump_radio_status_to_serialport(uint8_t);
 
@@ -23,28 +22,51 @@ void setup() {
   dump_radio_status_to_serialport(radio.radioState());
 
   radio.setRXaddress((void*)rxaddr);
-  
-//  pinMode(P1_0, OUTPUT);
- // digitalWrite(P1_0, LOW);
+  radio.setTXaddress((void*)txaddr);
   
   radio.enableRX();  // Start listening
 }
 
+
 void loop() {
-  char inbuf[33];
+    char inbuf[33];
+    DataCtrl* ptr_cdg;
+    DataResp response; 
   
-  dump_radio_status_to_serialport(radio.radioState());  // Should show Receive Mode
+  //dump_radio_status_to_serialport(radio.radioState());  // Should show Receive Mode
 
-  while (!radio.available(true))
-    ;
+radio.enableRX();
+  while (!radio.available(true));
   if (radio.read(inbuf)) {
-    Serial.print("Received packet: ");
-    Serial.println(inbuf);
+    response.battery = 120;
+    radio.disableRX();
+    
+    radio.write(&response,8);
+    radio.flush();
 
-   // if (!strcmp(inbuf, str_on))
-      //digitalWrite(P1_0, HIGH);
-   // if (!strcmp(inbuf, str_off))
-      //digitalWrite(P1_0, LOW);
+    //radio.enableRX();
+    Serial.print("Received packet: ");
+    Serial.println(1);
+
+    ptr_cdg = (DataCtrl*)&inbuf;
+    Serial.print("joy\tx: ");
+    Serial.print(ptr_cdg->joy_x);
+    Serial.print("\ty: ");
+    Serial.print(ptr_cdg->joy_y);
+    Serial.print("\tsel: ");
+    Serial.print(ptr_cdg->joy_sel);
+    
+    Serial.print("\tk_a: ");
+    Serial.print(ptr_cdg->key_a);
+    Serial.print("\tk_b: ");
+    Serial.println(ptr_cdg->key_b);
+
+    Serial.print("acc \tx: ");
+    Serial.print((ptr_cdg->acc_x));
+    Serial.print("\ty: ");
+    Serial.print((ptr_cdg->acc_y));
+    Serial.print("\tz: ");
+    Serial.println((ptr_cdg->acc_z));
   }
 }
 
