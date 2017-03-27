@@ -4,13 +4,17 @@
 #include <SPI.h>
 
 #include "uprot.h"
-//Enrf24 radio(9, 10, 8);
-Enrf24 radio(47, 46, 45);
+#include "machinedef.h"
+
+#include <Servo.h>
+
+Enrf24 radio(CSN, CE, IRQ);
 const uint8_t rxaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x01 };
 const uint8_t txaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x03 };
 
 void dump_radio_status_to_serialport(uint8_t);
 
+/*============================================================================*/
 void setup() {
   Serial.begin(9600);
 
@@ -32,19 +36,16 @@ void loop() {
     char inbuf[33];
     DataCtrl* ptr_cdg;
     DataResp response; 
-  
-  //dump_radio_status_to_serialport(radio.radioState());  // Should show Receive Mode
 
 radio.enableRX();
-  while (!radio.available(true));
-  if (radio.read(inbuf)) {
+    while (!radio.available(true));
+    if (radio.read(inbuf)) {
     response.battery = 120;
     radio.disableRX();
     
     radio.write(&response,8);
     radio.flush();
 
-    //radio.enableRX();
     Serial.print("Received packet: ");
     Serial.println(1);
 
@@ -69,6 +70,8 @@ radio.enableRX();
     Serial.println((ptr_cdg->acc_z));
   }
 }
+
+/*============================================================================*/
 
 void dump_radio_status_to_serialport(uint8_t status)
 {

@@ -13,15 +13,13 @@ Screen_HX8353E myScreen;
 Enrf24 radio(CSN, CE, IRQ);
 const uint8_t txaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x01 };
 const uint8_t rxaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x03 };
-const char *str_on = "CYKA";
-const char *str_off = "BLYAT";
 
 DataCtrl codogr;
 
 void dump_radio_status_to_serialport(uint8_t);
 void spiSwitch(uint8_t dev);
 
-/*=========================================================================*/
+/*============================================================================*/
 void setup() {
     pinMode(JOY_SEL, INPUT_PULLUP);
     analogReadResolution(12);
@@ -104,7 +102,8 @@ void loop() {
     Serial.println(az);
     delay(1000);
 }
-/*=========================================================================*/
+/*============================================================================*/
+
 void spiSwitch(uint8_t dev){
     if(dev == 1){
         //nRF24
