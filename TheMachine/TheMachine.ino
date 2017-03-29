@@ -14,7 +14,7 @@ const uint8_t rxaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x01 };
 const uint8_t txaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x03 };
 
 Servo steerServ;
-int angle_us = 1000;
+int angle_us = 1250;
 AF_DCMotor engine(2);
 int engPower;
 
@@ -81,25 +81,26 @@ void loop() {
                 int rx_joyx, rx_joyy;
 
                 // Steering
-                rx_joyx = (ptr_cdg->joy_x) / 32;    // 2048/32 = 64
+                rx_joyx = -(ptr_cdg->joy_x) / 32;    // 2048/32 = 64
                 angle_us += rx_joyx;
                 if(angle_us < ST_MIN) angle_us = ST_MIN;
                 if(angle_us > ST_MAX) angle_us = ST_MAX;
-                steerServ.writeMicroseconds(angle_us/2);
+                steerServ.writeMicroseconds(angle_us);
 
                 // Engine
                 rx_joyy = (ptr_cdg->joy_y) / 32;
                 engPower = rx_joyy;
+                int pwm = abs(engPower)*4;
+                if(pwm > 255) pwm = 255;
                 if(engPower > 10){
                     engine.run(FORWARD);
-                    engine.setSpeed(abs(engPower) * 4);
-                }else if(engPower > -10){
+                    engine.setSpeed(pwm);
+                }else if(engPower < -10){
                     engine.run(BACKWARD);
-                    engine.setSpeed(abs(engPower) * 4);
+                    engine.setSpeed(pwm);
                 }else{
                     engine.run(RELEASE);
                 }
-
             // debug
 /*
             Serial.print("Received packet: ");
