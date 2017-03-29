@@ -14,7 +14,7 @@ const uint8_t rxaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x01 };
 const uint8_t txaddr[] = { 0xDE, 0xAD, 0xBE, 0xEF, 0x03 };
 
 Servo steerServ;
-int steerPos = 900;
+int angle_us = 1000;
 AF_DCMotor engine(2);
 int engPower;
 
@@ -23,7 +23,7 @@ void dump_radio_status_to_serialport(uint8_t);
 /*============================================================================*/
 void setup() {
     /* Hardware setup */
-        steerServ.attach(SERVO1,750,1750);
+        steerServ.attach(SERVO1,ST_MIN,ST_MAX);
         
         //steerServ.writeMicroseconds(1250);
         engine.run(RELEASE);
@@ -71,29 +71,37 @@ void loop() {
             float bat;
             bat = 2 * analogRead(BAT_ADC) * (5.0/1024.0);
             response.battery = bat;
-            response.servo_a = steerPos;
+            response.servo_a = angle_us;
 
             // Sending response
             radio.write(&response,8);
             radio.flush();
 
             /* Controlling motors and servos */
-                steerPos += (ptr_cdg->joy_x)/8;
-                if(steerPos<0) steerPos = 0;
-                if(steerPos>1800) steerPos = 1800;
-                engPower = ptr_cdg->joy_y;
+                int rx_joyx, rx_joyy;
+
+                // Steering
+                rx_joyx = (ptr_cdg->joy_x) / 32;    // 2048/32 = 64
+                angle_us += rx_joyx;
+                if(angle_us < ST_MIN) angle_us = ST_MIN;
+                if(angle_us > ST_MAX) angle_us = ST_MAX;
+                steerServ.writeMicroseconds(angle_us/2);
+
+                // Engine
+                rx_joyy = (ptr_cdg->joy_y) / 32;
+                engPower = rx_joyy;
                 if(engPower > 10){
                     engine.run(FORWARD);
-                    engine.setSpeed(map(abs(engPower),0,2048,0,255));
+                    engine.setSpeed(abs(engPower) * 4);
                 }else if(engPower > -10){
                     engine.run(BACKWARD);
-                    engine.setSpeed(map(abs(engPower),0,2048,0,255));
+                    engine.setSpeed(abs(engPower) * 4);
                 }else{
                     engine.run(RELEASE);
                 }
 
-                steerServ.write(steerPos/10);
             // debug
+/*
             Serial.print("Received packet: ");
             Serial.println(1);
 
@@ -105,7 +113,7 @@ void loop() {
             Serial.print(ptr_cdg->joy_sel);
             
             Serial.print("\tstr: ");
-            Serial.print(steerPos);
+            Serial.print(angle_us);
             Serial.print("\tk_b: ");
             Serial.println(ptr_cdg->key_b);
 /*

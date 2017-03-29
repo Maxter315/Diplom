@@ -50,6 +50,7 @@ void setup() {
 int16_t xx, yy;
 int16_t ax, ay, az;
 float mainBattery;
+long prev;
 
 char inbuf[33];
 DataResp* ptr_cdg;
@@ -69,19 +70,6 @@ void loop() {
         codogr.setKeys(!(bool)digitalRead(KEY_A), !(bool)digitalRead(KEY_B));
         codogr.setAcc(ax, ay, az);
 
-    /* Switching SPI to LCD */
-        spiSwitch(2);
-
-        // Displaying all the information
-        char val[10];
-        //mkScreen.rectangle(0,0,128,32,blackColour);
-        sprintf(val,"jx=%6.1d",xx);    mkScreen.gText(0, 0, val);
-        sprintf(val,"jy=%6.1d",yy);    mkScreen.gText(0, 8, val);
-        sprintf(val,"ax=%6.1d",ax);    mkScreen.gText(64, 0, val);
-        sprintf(val,"ay=%6.1d",ay);    mkScreen.gText(64, 8, val);
-        sprintf(val,"az=%6.1d",az);    mkScreen.gText(64, 16, val);
-        mkScreen.gText(0, 16, " ");
-
     /* Switching SPI to nRF24l01+ */
         spiSwitch(1);
 
@@ -100,11 +88,30 @@ void loop() {
         if(radio.read(inbuf)){
             // Response is received
             ptr_cdg = (DataResp*)&inbuf;
+            /*
             Serial.print("bat: ");
             Serial.println(ptr_cdg->battery);
+            */
         }
         radio.disableRX();
-        
+
+        if(millis() - prev > 200){
+            prev = millis();
+        /* Switching SPI to LCD */
+            spiSwitch(2);
+
+            // Displaying all the information
+            char val[10];
+            //mkScreen.rectangle(0,0,128,32,blackColour);
+            sprintf(val,"jx=%6.1d",xx);    mkScreen.gText(0, 0, val);
+            sprintf(val,"jy=%6.1d",yy);    mkScreen.gText(0, 8, val);
+            sprintf(val,"ax=%6.1d",ax);    mkScreen.gText(64, 0, val);
+            sprintf(val,"ay=%6.1d",ay);    mkScreen.gText(64, 8, val);
+            sprintf(val,"az=%6.1d",az);    mkScreen.gText(64, 16, val);
+            mkScreen.gText(0, 16, " ");
+        }
+
+/*
         // debug
         Serial.print("acc \tx: ");
         Serial.print(ax);
@@ -112,8 +119,8 @@ void loop() {
         Serial.print(ay);
         Serial.print("\tz: ");
         Serial.println(az);
-
-    delay(100);
+*/
+    delay(20);
 }
 /*============================================================================*/
 
