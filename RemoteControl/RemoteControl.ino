@@ -38,7 +38,10 @@ void setup() {
         mkScreen.setOrientation(0);
         mkScreen.clear(blackColour);
         mkScreen.setPenSolid(false);
-        mkScreen.gText(48, 48, "(FUG)");
+        mkScreen.gText(5*8, 7*8, "<(FUG)>", cyanColour);
+        mkScreen.gText(24, 10*8, "Telemetry:", yellowColour);
+        mkScreen.gText(0, 0*8, "Joystick  | Accel", yellowColour);
+        mkScreen.gText(0, 128, " ");
 
     /* nRF24l01+ setup */
         radio.begin();  // Defaults 1Mbps, channel 0, max TX power
@@ -58,7 +61,7 @@ DataResp* ptr_cdg;
 void loop() { 
 
     /* Reading Joystick position and orientation */
-        xx = analogRead(JOY_X) - 2048;
+        xx = (analogRead(JOY_X) - 2048)/2;
         yy = analogRead(JOY_Y) - 2048;
 
         ax = analogRead(ACC_X) - 2048;
@@ -95,20 +98,23 @@ void loop() {
         }
         radio.disableRX();
 
-        if(millis() - prev > 200){
+        if(millis() - prev > 500){
             prev = millis();
         /* Switching SPI to LCD */
             spiSwitch(2);
 
             // Displaying all the information
-            char val[10];
+            char val[20];
             //mkScreen.rectangle(0,0,128,32,blackColour);
-            sprintf(val,"jx=%6.1d",xx);    mkScreen.gText(0, 0, val);
-            sprintf(val,"jy=%6.1d",yy);    mkScreen.gText(0, 8, val);
-            sprintf(val,"ax=%6.1d",ax);    mkScreen.gText(64, 0, val);
-            sprintf(val,"ay=%6.1d",ay);    mkScreen.gText(64, 8, val);
-            sprintf(val,"az=%6.1d",az);    mkScreen.gText(64, 16, val);
-            mkScreen.gText(0, 16, " ");
+            sprintf(val,"jx=%6.1d",xx);    mkScreen.gText(0, 1*8, val);
+            sprintf(val,"jy=%6.1d",yy);    mkScreen.gText(0, 2*8, val);
+            sprintf(val,"ax=%6.1d",ax);    mkScreen.gText(64, 1*8, val);
+            sprintf(val,"ay=%6.1d",ay);    mkScreen.gText(64, 2*8, val);
+            sprintf(val,"az=%6.1d",az);    mkScreen.gText(64, 3*8, val);
+            sprintf(val,"battery =%6.3fV",ptr_cdg->battery);    mkScreen.gText(0, 11*8, val);
+            sprintf(val,"servo  =%6.1dus",ptr_cdg->servo_a);    mkScreen.gText(0, 12*8, val);
+            
+            mkScreen.gText(0, 128, " ");
         }
 
 /*
@@ -120,7 +126,7 @@ void loop() {
         Serial.print("\tz: ");
         Serial.println(az);
 */
-    delay(20);
+    delay(10);
 }
 /*============================================================================*/
 

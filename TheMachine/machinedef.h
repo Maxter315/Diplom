@@ -7,5 +7,5 @@
 
 #define BAT_ADC 0
 
-#define ST_MIN 750
-#define ST_MAX 1750
+#define ST_MIN 630
+#define ST_MAX 1870

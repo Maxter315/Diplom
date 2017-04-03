@@ -24,12 +24,12 @@ void dump_radio_status_to_serialport(uint8_t);
 void setup() {
     /* Hardware setup */
         steerServ.attach(SERVO1,ST_MIN,ST_MAX);
-        
         //steerServ.writeMicroseconds(1250);
         engine.run(RELEASE);
+        pinMode(BAT_ADC, INPUT);
 
     /* Communication initialization */
-        Serial.begin(9600);
+        //Serial.begin(9600);
 
         SPI.begin();
         SPI.setDataMode(SPI_MODE0);
@@ -69,12 +69,13 @@ void loop() {
 
             // Preparing response
             float bat;
-            bat = 2 * analogRead(BAT_ADC) * (5.0/1024.0);
+            bat = ((float)(2 * analogRead(BAT_ADC))) * (5.0/1024.0);
             response.battery = bat;
             response.servo_a = angle_us;
+            //Serial.println(bat);
 
             // Sending response
-            radio.write(&response,8);
+            radio.write(&response,10);
             radio.flush();
 
             /* Controlling motors and servos */

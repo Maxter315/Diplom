@@ -21,8 +21,8 @@ public:
 
 class DataResp{
 public:
+  float battery;
 	uint16_t delta_time;
-	uint16_t battery;
 	int16_t servo_a;
 	int16_t servo_b;
 };
